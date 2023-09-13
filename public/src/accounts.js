@@ -8,7 +8,7 @@ function sortAccountsByLastName(accounts) {
   })
 }
 
-function getTotalNumberOfBorrows(account, books) { // return number of books borrowed - borrowing 1 book 10 times = 1
+function getTotalNumberOfBorrows(account, books) { // return number of books borrowed - borrowing 1 book 10 times = 1 
   return books.reduce((total, book) => {
     if (book.borrows.some((borrow) => borrow.id === account.id)) {
       total += 1
@@ -25,7 +25,6 @@ function getBooksPossessedByAccount(account, books, authors) {
     return {...book, author};
   });
 }
-
 
 module.exports = {
   findAccountById,
