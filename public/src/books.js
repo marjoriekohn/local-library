@@ -22,5 +22,6 @@ module.exports = {
   findBookById,
   partitionBooksByBorrowedStatus,
   getBorrowersForBook,
+  findById,
 };
 

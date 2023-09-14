@@ -1,54 +1,47 @@
-const {partitionBooksByBorrowedStatus, findAuthorById} = require("./books");
+const {partitionBooksByBorrowedStatus, findById} = require("./books");
 
 const getTotalBooksCount = (books) => books.length;
 const getTotalAccountsCount = (accounts) => accounts.length;
 const getBooksBorrowedCount = (books) => partitionBooksByBorrowedStatus(books)[0].length;
 
 function getMostCommonGenres(books) {
-  const genreCount = books.reduce((allGenres, book) => {
-    if (allGenres[book.genre]) {
-      allGenres[book.genre] += 1;
-    } else {
-      allGenres[book.genre] = 1
-    }
-    return allGenres;
-  }, {})
-  return Object.entries(genreCount)
-    .sort((genreA, genreB) => genreB[1] - genreA[1])
-    .map(([name, count]) => ({ name, count }))
-    .slice(0, 5)
+  const genreCount = countByProperty(books, 'genre'); // returns object
+  const commonGenres = Object.entries(genreCount).map(([name, count]) => ({ name, count })) // array
+  return sortAndSliceTopFive(commonGenres, 'count'); // returns array
 }
 
 function getMostPopularBooks(books) {
-  return books.map((book) => ({
+  const popularBooks = books.map((book) => ({
     name: book.title,
     count: getBorrowCount(book),
   }))
-    .sort((bookA, bookB) => bookB.count - bookA.count)
-    .slice(0, 5);
+  return sortAndSliceTopFive(popularBooks, 'count');
 }
 
 function getMostPopularAuthors(books, authors) {
-  const allAuthors = {};
-
-  books.forEach((book) => {
-    const author = findAuthorById(authors, book.authorId);
-    const authorName = `${author.name.first} ${author.name.last}`;
-    if (allAuthors[authorName]) {
-      allAuthors[authorName] += getBorrowCount(book);
-    } else {
-      allAuthors[authorName] = getBorrowCount(book);
-    }
-  }, {})
-
-  return Object.entries(allAuthors)
-    .map(([name, count]) => ({ name, count }))
-    .sort((authorA, authorB) => authorB.count - authorA.count)
-    .slice(0, 5)
+  const bookBorrowCount = books.map((book) => ({borrowCount: getBorrowCount(book), ...book})); // add borrowCount property to books
+  const authorBorrowCount = bookBorrowCount.reduce((total, {authorId, borrowCount}) => { // destructure book properties - returns object
+    total.hasOwnProperty(authorId) ? total[authorId] += borrowCount : total[authorId] = borrowCount; // hold total borrow counts
+    return total;
+  }, {});
+  const topAuthors = Object.entries(authorBorrowCount).map(([id, count]) => { // map to correct format
+    const { name:{first, last}} = findById(authors, Number(id)); // author full name
+    return { name: `${first} ${last}`, count };
+  })
+  return sortAndSliceTopFive(topAuthors, 'count');
 }
 
 // helper functions
 const getBorrowCount = (book) => book.borrows.length;
+const sortAndSliceTopFive = (array, key) => array.sort((itemA, itemB) => itemB[key] - itemA[key]).slice(0, 5);
+const countByProperty = (array, property) => { // returns number of occurrences
+  return array.reduce((total, item) => {
+    const key = item[property];
+    total[key] ? total[key] += 1 : total[key] = 1;
+    return total;
+  }, {})
+}
+
 
 module.exports = {
   getTotalBooksCount,
