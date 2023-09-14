@@ -14,10 +14,8 @@ function getBorrowersForBook(book, accounts) {
   }).slice(0, 10);
 }
 
-// helper function - findById
-function findById(objects, id) {
-  return objects.find((object) => object.id === id);
-}
+// helper functions
+const findById = (objects, id) => objects.find((object) => object.id === id);
 
 module.exports = {
   findAuthorById,
